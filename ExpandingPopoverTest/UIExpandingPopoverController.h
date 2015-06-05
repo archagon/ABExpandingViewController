@@ -11,14 +11,17 @@
 // For the time being, this class requires autolayout. (That is, you cannot position its view using frame.)
 // That's not to say that this is impossible, but this is not my use case for the time being.
 
-@interface UIExpandingPopoverController : UIViewController
+// The only thing that should be changing the bounds of this controller is the controller itself.
 
-@property (nonatomic, assign) CGPoint expansionAnchorPoint;
-@property (nonatomic, assign) CGPoint center;
+@interface UIExpandingPopoverController : UIViewController
 
 -(id) initWithClosed:(UIViewController*)closedVC open:(UIViewController*)openVC;
 
--(IBAction) open;
--(IBAction) close;
+-(void) open;
+-(void) close;
+
+// perhaps there's a better way to animate autolayout-related views, but WHATEVS
+-(void) openWithDependantViews:(NSArray*)views;
+-(void) closeWithDependantViews:(NSArray*)views;
 
 @end

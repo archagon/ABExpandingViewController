@@ -41,31 +41,12 @@ NSTimeInterval animationTime = 0.25f;
     return self;
 }
 
--(void) setExpansionAnchorPoint:(CGPoint)expansionAnchorPoint {
-    [self ensureInit];
-    
-    if (!CGPointEqualToPoint(expansionAnchorPoint, _expansionAnchorPoint)) {
-        _expansionAnchorPoint = expansionAnchorPoint;
-        
-        self.isOpenLastUpdateBounds = !self.isOpen;
-        [self updateBoundsAnimated:NO];
-    }
-}
-
--(void) setCenter:(CGPoint)center {
-    [self ensureInit];
-    
-    if (!CGPointEqualToPoint(center, _center)) {
-        _center = center;
-        
-        self.isOpenLastUpdateBounds = !self.isOpen;
-        [self updateBoundsAnimated:NO];
-    }
-}
-
 -(void) initializeViews {
     if (!self.viewControllersInitialized) {
         self.view.translatesAutoresizingMaskIntoConstraints = NO;
+        self.width = [NSLayoutConstraint constraintWithItem:self.view attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:0];
+        self.height = [NSLayoutConstraint constraintWithItem:self.view attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:0];
+        [self.view addConstraints:@[self.width, self.height]];
         
         self.view.layer.borderWidth = 5;
         self.view.layer.cornerRadius = 20;
@@ -75,11 +56,27 @@ NSTimeInterval animationTime = 0.25f;
         bounds1 = self.closedController.view.bounds;
         bounds2 = self.openController.view.bounds;
         
+        self.closedController.view.translatesAutoresizingMaskIntoConstraints = NO;
+        self.openController.view.translatesAutoresizingMaskIntoConstraints = NO;
+        
         [self addChildViewController:self.closedController];
         [self addChildViewController:self.openController];
         
         [self.view addSubview:self.openController.view];
         [self.view addSubview:self.closedController.view];
+        
+        void (^fullscreenView)(UIView*, UIView*) = ^void(UIView* parent, UIView* child) {
+            NSDictionary* views = @{@"parent":parent, @"child":child};
+            
+            NSArray* horizontalConstraints = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|[child]|" options:kNilOptions metrics:nil views:views];
+            NSArray* verticalConstraints = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|[child]|" options:kNilOptions metrics:nil views:views];
+            
+            [parent addConstraints:horizontalConstraints];
+            [parent addConstraints:verticalConstraints];
+        };
+        
+        fullscreenView(self.view, self.openController.view);
+        fullscreenView(self.view, self.closedController.view);
         
         self.viewControllersInitialized = YES;
     }
@@ -98,31 +95,30 @@ NSTimeInterval animationTime = 0.25f;
     [self updateBoundsAnimated:NO];
 }
 
--(IBAction) open {
+-(void) open {
+    [self openWithDependantViews:nil];
+}
+
+-(void) close {
+    [self closeWithDependantViews:nil];
+}
+
+-(void) openWithDependantViews:(NSArray*)views {
     [self ensureInit];
     
     self.isOpen = YES;
     
     [self updateViewAnimated:YES];
-    [self updateBoundsAnimated:YES];
-    
-//    [UIView animateWithDuration:1 animations:^{
-//        self.closedController.view.frame = CGRectMake(0, 0, bounds1.size.width + arc4random() % 20 - 10, bounds1.size.height + arc4random() % 20 - 10);
-//    }];
-    
-//    [UIView animateWithDuration:1 delay:0 options:UIViewAnimationOptionLayoutSubviews animations:^{
-//        self.closedController.view.frame = CGRectMake(0, 0, bounds1.size.width + arc4random() % 20 - 10, bounds1.size.height + arc4random() % 20 - 10);
-//    } completion:^(BOOL finished) {
-//    }];
+    [self updateBoundsAnimated:YES withDependantViews:views];
 }
 
--(IBAction) close {
+-(void) closeWithDependantViews:(NSArray*)views {
     [self ensureInit];
     
     self.isOpen = NO;
-
+    
     [self updateViewAnimated:YES];
-    [self updateBoundsAnimated:YES];
+    [self updateBoundsAnimated:YES withDependantViews:views];
 }
 
 -(void) updateViewAnimated:(BOOL)animated {
@@ -152,26 +148,38 @@ NSTimeInterval animationTime = 0.25f;
 }
 
 -(void) updateBoundsAnimated:(BOOL)animated {
+    [self updateBoundsAnimated:animated withDependantViews:nil];
+}
+
+-(void) updateBoundsAnimated:(BOOL)animated withDependantViews:(NSArray*)views {
     if (self.isOpen != self.isOpenLastUpdateBounds) {
         if (self.isOpen) {
+            CGRect bounds = bounds2;
+            self.width.constant = bounds.size.width;
+            self.height.constant = bounds.size.height;
+            [self.view setNeedsUpdateConstraints];
+            
             [UIView animateWithDuration:(animated ? animationTime : 0) delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionLayoutSubviews|UIViewAnimationOptionCurveEaseOut animations:^{
-                CGRect bounds = bounds2;
-                self.view.frame = bounds;
-                self.openController.view.frame = bounds;
-                self.closedController.view.frame = bounds;
-                self.view.center = CGPointMake(self.center.x + (self.view.bounds.size.width * (1 - self.expansionAnchorPoint.x) / 2.0f),
-                                               self.center.y + (self.view.bounds.size.height * (1 - self.expansionAnchorPoint.y) / 2.0f));
+                [self.view layoutIfNeeded];
+                
+                for (UIView* view in views) {
+                    [view layoutIfNeeded];
+                }
             } completion:^(BOOL finished) {
             }];
         }
         else {
+            CGRect bounds = bounds1;
+            self.width.constant = bounds.size.width;
+            self.height.constant = bounds.size.height;
+            [self.view setNeedsUpdateConstraints];
+            
             [UIView animateWithDuration:(animated ? animationTime : 0) delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionLayoutSubviews|UIViewAnimationOptionCurveEaseOut animations:^{
-                CGRect bounds = bounds1;
-                self.view.frame = bounds;
-                self.openController.view.frame = bounds;
-                self.closedController.view.frame = bounds;
-                self.view.center = CGPointMake(self.center.x + (self.view.bounds.size.width * (1 - self.expansionAnchorPoint.x) / 2.0f),
-                                               self.center.y + (self.view.bounds.size.height * (1 - self.expansionAnchorPoint.y) / 2.0f));
+                [self.view layoutIfNeeded];
+                
+                for (UIView* view in views) {
+                    [view layoutIfNeeded];
+                }
             } completion:^(BOOL finished) {
             }];
         }
