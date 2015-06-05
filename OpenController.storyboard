@@ -5,10 +5,11 @@
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
-        <!--Navigation Controller-->
+        <!--Open Controller-->
         <scene sceneID="Ruq-ku-LFx">
             <objects>
-                <navigationController id="mAt-u9-iox" sceneMemberID="viewController">
+                <navigationController id="mAt-u9-iox" customClass="OpenController" sceneMemberID="viewController">
+                    <value key="contentSizeForViewInPopover" type="size" width="300" height="400"/>
                     <nil key="simulatedStatusBarMetrics"/>
                     <nil key="simulatedBottomBarMetrics"/>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
@@ -28,7 +29,7 @@
         <!--Boop-->
         <scene sceneID="ehV-8I-YzJ">
             <objects>
-                <viewController id="mHy-9h-YLu" sceneMemberID="viewController">
+                <viewController id="mHy-9h-YLu" customClass="OpenDemoController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="wml-Qg-rs6"/>
                         <viewControllerLayoutGuide type="bottom" id="Nat-49-uL6"/>
@@ -52,6 +53,9 @@
                                     <color key="titleColor" red="0.69663431190000003" green="0.31604944228900655" blue="0.29171613584123085" alpha="1" colorSpace="calibratedRGB"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
+                                <connections>
+                                    <action selector="resizeTapped:" destination="mHy-9h-YLu" eventType="touchUpInside" id="b6j-Pc-Soq"/>
+                                </connections>
                             </button>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="Jh3-pk-5TC">
                                 <rect key="frame" x="0.0" y="144" width="300" height="256"/>
@@ -86,17 +90,17 @@
         <!--Beep-->
         <scene sceneID="mk8-zm-1da">
             <objects>
-                <viewController id="gMt-Wi-l4e" sceneMemberID="viewController">
+                <viewController id="gMt-Wi-l4e" customClass="OpenTextController" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="m7h-Ug-PAx"/>
                         <viewControllerLayoutGuide type="bottom" id="5pw-e5-PpY"/>
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="axk-Nm-9Vh">
-                        <rect key="frame" x="0.0" y="0.0" width="400" height="200"/>
+                        <rect key="frame" x="0.0" y="0.0" width="300" height="200"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="DERP" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AnG-An-f0a">
-                                <rect key="frame" x="106" y="57" width="188" height="86"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="PIRAÑA!" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AnG-An-f0a">
+                                <rect key="frame" x="14" y="57" width="273" height="86"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="72"/>
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
@@ -109,8 +113,9 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Beep" prompt="Wot Wot" id="qXR-Sk-u6c"/>
+                    <value key="contentSizeForViewInPopover" type="size" width="400" height="200"/>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
-                    <size key="freeformSize" width="400" height="200"/>
+                    <size key="freeformSize" width="300" height="200"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ZBI-hK-jfn" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

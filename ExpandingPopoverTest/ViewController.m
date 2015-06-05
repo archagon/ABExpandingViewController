@@ -10,7 +10,7 @@
 #import "UIExpandingPopoverController.h"
 #import "ClosedController.h"
 
-@interface ViewController ()
+@interface ViewController () <UIExpandingPopoverControllerDelegate>
 
 @property (nonatomic, retain) UIExpandingPopoverController* expandingPopoverController;
 @property (nonatomic, retain) UIExpandingPopoverController* expandingPopoverController2;
@@ -34,6 +34,10 @@ NSMutableDictionary* asdf;
     [self.view addConstraints:@[constraint1, constraint2]];
     
     self.expandingPopoverController2 = [self createPopover];
+    UIViewController* closedController = (UIViewController*)[self.expandingPopoverController2 closedController];
+    closedController.preferredContentSize = CGSizeMake(closedController.preferredContentSize.width * 1.25f, closedController.preferredContentSize.height);
+    [closedController.view setBackgroundColor:[UIColor lightGrayColor]];
+    self.expandingPopoverController2.view.layer.borderColor = [[UIColor darkGrayColor] CGColor];
     
     constraint1 = [NSLayoutConstraint constraintWithItem:self.expandingPopoverController2.view attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeLeft multiplier:1 constant:20];
     constraint2 = [NSLayoutConstraint constraintWithItem:self.expandingPopoverController2.view attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.expandingPopoverController.view attribute:NSLayoutAttributeBottom multiplier:1 constant:20];
@@ -47,7 +51,7 @@ NSMutableDictionary* asdf;
     constraint1 = [NSLayoutConstraint constraintWithItem:self.blahView attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self.expandingPopoverController.view attribute:NSLayoutAttributeRight multiplier:1 constant:20];
     constraint2 = [NSLayoutConstraint constraintWithItem:self.blahView attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.expandingPopoverController.view attribute:NSLayoutAttributeTop multiplier:1 constant:0];
     [self.view addConstraints:@[constraint1, constraint2]];
-    constraint1 = [NSLayoutConstraint constraintWithItem:self.blahView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:200];
+    constraint1 = [NSLayoutConstraint constraintWithItem:self.blahView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:50];
     constraint2 = [NSLayoutConstraint constraintWithItem:self.blahView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:self.expandingPopoverController.view attribute:NSLayoutAttributeHeight multiplier:0.75f constant:0];
     [self.view addConstraints:@[constraint1, constraint2]];
 }
@@ -71,17 +75,28 @@ NSMutableDictionary* asdf;
     
     [popover close];
     
+    popover.delegate = self;
+    
     return [popover autorelease];
 }
 
 -(void) openWithButton:(UIButton*)button {
     UIExpandingPopoverController* controller = asdf[@([button hash])];
-    [controller openWithDependantViews:@[self.expandingPopoverController.view, self.expandingPopoverController2.view, self.blahView]];
+    [controller open];
 }
 
 -(void) closeWithButton:(UIButton*)button {
     UIExpandingPopoverController* controller = asdf[@([button hash])];
-    [controller closeWithDependantViews:@[self.expandingPopoverController.view, self.expandingPopoverController2.view, self.blahView]];
+    [controller close];
+}
+
+-(NSArray*) expandingPopoverShouldTriggerLayoutForAdditionalViewsDuringBoundsChangeAnimation:(UIExpandingPopoverController*)controller {
+    if (self.expandingPopoverController && self.expandingPopoverController2 && self.blahView) {
+        return @[self.expandingPopoverController.view, self.expandingPopoverController2.view, self.blahView];
+    }
+    else {
+        return nil;
+    }
 }
 
 @end

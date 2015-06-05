@@ -13,15 +13,24 @@
 
 // The only thing that should be changing the bounds of this controller is the controller itself.
 
+@class UIExpandingPopoverController;
+
+@protocol UIExpandingPopoverControllerDelegate
+
+@optional
+
+-(void) expandingPopoverBoundsWillChange:(UIExpandingPopoverController*)controller;
+-(NSArray*) expandingPopoverShouldTriggerLayoutForAdditionalViewsDuringBoundsChangeAnimation:(UIExpandingPopoverController*)controller;
+
+@end
+
 @interface UIExpandingPopoverController : UIViewController
+
+@property (nonatomic, assign) id<NSObject,UIExpandingPopoverControllerDelegate> delegate;
 
 -(id) initWithClosed:(UIViewController*)closedVC open:(UIViewController*)openVC;
 
 -(void) open;
 -(void) close;
-
-// perhaps there's a better way to animate autolayout-related views, but WHATEVS
--(void) openWithDependantViews:(NSArray*)views;
--(void) closeWithDependantViews:(NSArray*)views;
 
 @end

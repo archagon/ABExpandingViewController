@@ -28,6 +28,5 @@
 
 -(void) updateViewAnimated:(BOOL)animated;
 -(void) updateBoundsAnimated:(BOOL)animated;
--(void) updateBoundsAnimated:(BOOL)animated withDependantViews:(NSArray*)views;
 
 @end
