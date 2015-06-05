@@ -8,6 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
-@interface OpenController : UIViewController
+@interface OpenController : UINavigationController <UINavigationControllerDelegate>
+@end
 
+@interface OpenDemoController : UIViewController
+-(IBAction) resizeTapped:(UIButton*)resize;
+@end
+
+@interface OpenTextController : UIViewController
 @end

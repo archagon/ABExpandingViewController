@@ -8,30 +8,67 @@
 
 #import "OpenController.h"
 
-@interface OpenController ()
+@implementation OpenController
+
+CGSize originalPreferredContentSize;
+
+-(instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    
+    if (self) {
+        self.delegate = self;
+        originalPreferredContentSize = self.preferredContentSize;
+    }
+    
+    return self;
+}
+
+-(id)initWithCoder:(NSCoder *)aDecoder {
+    self = [super initWithCoder:aDecoder];
+    
+    if (self) {
+        self.delegate = self;
+        originalPreferredContentSize = self.preferredContentSize;
+    }
+    
+    return self;
+}
+
+-(void) preferredContentSizeDidChangeForChildContentContainer:(id<UIContentContainer>)container {
+    if ([container preferredContentSize].width && [container preferredContentSize].height) {
+        self.preferredContentSize = [container preferredContentSize];
+    }
+    else {
+        self.preferredContentSize = originalPreferredContentSize;
+    }
+}
+
+-(void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+    if (viewController.preferredContentSize.width && viewController.preferredContentSize.height) {
+        self.preferredContentSize = viewController.preferredContentSize;
+    }
+    else {
+        self.preferredContentSize = originalPreferredContentSize;
+    }
+}
+
 
 @end
 
-@implementation OpenController
+@implementation OpenDemoController
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view.
+-(IBAction) resizeTapped:(UIButton*)resize {
+    CGSize size = CGSizeMake(arc4random() % 200 + 100, arc4random() % 400 + 200);
+    self.preferredContentSize = size;
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
+@end
 
-/*
-#pragma mark - Navigation
+@implementation OpenTextController
 
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
+-(CGSize) preferredContentSize {
+    return CGSizeMake(300, 150);
 }
-*/
 
 @end
