@@ -41,6 +41,8 @@ NSTimeInterval animationTime = 0.25f;
 
 -(void) initializeViews {
     if (!self.viewControllersInitialized) {
+        // we want to be able to change the dimensions from within the controller, but we also want to retain the
+        // ability for outside code to reposition the controller; hence, manual dimension constraints
         self.view.translatesAutoresizingMaskIntoConstraints = NO;
         self.width = [NSLayoutConstraint constraintWithItem:self.view attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:0];
         self.height = [NSLayoutConstraint constraintWithItem:self.view attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:0];
@@ -70,6 +72,7 @@ NSTimeInterval animationTime = 0.25f;
             [parent addConstraints:verticalConstraints];
         };
         
+        // our child view controllers are always the full size of the parent; it's the parent that changes its size
         fullscreenView(self.view, self.openController.view);
         fullscreenView(self.view, self.closedController.view);
         
@@ -113,6 +116,7 @@ NSTimeInterval animationTime = 0.25f;
     [self updateBoundsAnimated:YES];
 }
 
+// TODO: transition method
 -(void) updateViewAnimated:(BOOL)animated {
     // TODO: animation
     
@@ -146,36 +150,19 @@ NSTimeInterval animationTime = 0.25f;
             additionalViews = [self.delegate expandingPopoverShouldTriggerLayoutForAdditionalViewsDuringBoundsChangeAnimation:self];
         }
         
-        if (self.isOpen) {
-            CGSize size = self.openController.preferredContentSize;
-            self.width.constant = size.width;
-            self.height.constant = size.height;
-            [self.view setNeedsUpdateConstraints];
+        CGSize size = (self.isOpen ? self.openController.preferredContentSize : self.closedController.preferredContentSize);
+        self.width.constant = size.width;
+        self.height.constant = size.height;
+        [self.view setNeedsUpdateConstraints];
+        
+        [UIView animateWithDuration:(animated ? animationTime : 0) delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionLayoutSubviews|UIViewAnimationOptionCurveEaseOut animations:^{
+            [self.view layoutIfNeeded];
             
-            [UIView animateWithDuration:(animated ? animationTime : 0) delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionLayoutSubviews|UIViewAnimationOptionCurveEaseOut animations:^{
-                [self.view layoutIfNeeded];
-                
-                for (UIView* view in additionalViews) {
-                    [view layoutIfNeeded];
-                }
-            } completion:^(BOOL finished) {
-            }];
-        }
-        else {
-            CGSize size = self.closedController.preferredContentSize;
-            self.width.constant = size.width;
-            self.height.constant = size.height;
-            [self.view setNeedsUpdateConstraints];
-            
-            [UIView animateWithDuration:(animated ? animationTime : 0) delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionLayoutSubviews|UIViewAnimationOptionCurveEaseOut animations:^{
-                [self.view layoutIfNeeded];
-                
-                for (UIView* view in additionalViews) {
-                    [view layoutIfNeeded];
-                }
-            } completion:^(BOOL finished) {
-            }];
-        }
+            for (UIView* view in additionalViews) {
+                [view layoutIfNeeded];
+            }
+        } completion:^(BOOL finished) {
+        }];
         
         self.isOpenLastUpdateBounds = self.isOpen;
     }

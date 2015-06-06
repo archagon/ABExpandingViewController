@@ -10,7 +10,9 @@
 
 // For the time being, this class requires autolayout. (That is, you cannot position its view using frame.)
 // That's not to say that this is impossible, but this is not my use case for the time being.
-
+//
+// The children view controllers must have their preferred content size set!
+//
 // The only thing that should be changing the bounds of this controller is the controller itself.
 
 @class UIExpandingPopoverController;
@@ -19,7 +21,6 @@
 
 @optional
 
--(void) expandingPopoverBoundsWillChange:(UIExpandingPopoverController*)controller;
 -(NSArray*) expandingPopoverShouldTriggerLayoutForAdditionalViewsDuringBoundsChangeAnimation:(UIExpandingPopoverController*)controller;
 
 @end
