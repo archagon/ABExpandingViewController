@@ -19,6 +19,8 @@
 // constraints
 @property (nonatomic, retain) NSLayoutConstraint* width;
 @property (nonatomic, retain) NSLayoutConstraint* height;
+@property (nonatomic, retain) NSArray* closedControllerFullscreenConstraints;
+@property (nonatomic, retain) NSArray* openControllerFullscreenConstraints;
 
 // caches
 @property (nonatomic, assign) BOOL isOpenLastUpdateView;

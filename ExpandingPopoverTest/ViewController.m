@@ -73,8 +73,6 @@ NSMutableDictionary* asdf;
     asdf[@([button2 hash])] = popover;
     [button2 addTarget:self action:@selector(closeWithButton:) forControlEvents:UIControlEventTouchUpInside];
     
-    [popover close];
-    
     popover.delegate = self;
     
     return [popover autorelease];

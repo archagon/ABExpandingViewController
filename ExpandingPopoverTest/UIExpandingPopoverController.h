@@ -14,6 +14,9 @@
 // The children view controllers must have their preferred content size set!
 //
 // The only thing that should be changing the bounds of this controller is the controller itself.
+//
+// Once the controller is initialized, its children are strictly under its control. Do not modify their views or
+// add constraints to them!
 
 @class UIExpandingPopoverController;
 
@@ -21,6 +24,10 @@
 
 @optional
 
+// If you want other views that are bound by autolayout constraints to this popover to move based on its
+// expansion/contraction, you need to manually pass them in with this delegate call. Is there a better way to do this?
+// I'm not sure. But by default, if we don't include these extra views in the animation blocks, they just snap into
+// place.
 -(NSArray*) expandingPopoverShouldTriggerLayoutForAdditionalViewsDuringBoundsChangeAnimation:(UIExpandingPopoverController*)controller;
 
 @end
