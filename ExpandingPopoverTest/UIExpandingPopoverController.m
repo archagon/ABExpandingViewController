@@ -32,8 +32,7 @@ NSTimeInterval animationTime = 0.5f;
         _viewControllersInitialized = NO;
         
         _isOpen = NO;
-        _isOpenLastUpdateView = YES; //force update
-        _isOpenLastUpdateBounds = YES; //force update
+        _isOpenLastUpdateView = !_isOpen; //force update
     }
     
     return self;
@@ -41,50 +40,24 @@ NSTimeInterval animationTime = 0.5f;
 
 -(void) initializeViews {
     if (!self.viewControllersInitialized) {
-        // we want to be able to change the dimensions from within the controller, but we also want to retain the
-        // ability for outside code to reposition the controller; hence, manual dimension constraints
-        self.view.translatesAutoresizingMaskIntoConstraints = NO;
-        self.width = [NSLayoutConstraint constraintWithItem:self.view attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:0];
-        self.height = [NSLayoutConstraint constraintWithItem:self.view attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:0];
-        self.width.priority = UILayoutPriorityRequired;
-        self.height.priority = UILayoutPriorityRequired;
-        [self.view addConstraints:@[self.width, self.height]];
-        
         self.view.layer.borderWidth = 5;
         self.view.layer.cornerRadius = 20;
         self.view.layer.borderColor = [[UIColor greenColor] CGColor];
         self.view.clipsToBounds = YES;
         
-        NSArray* (^fullscreenConstraints)(UIView*, UIView*) = ^NSArray*(UIView* parent, UIView* child) {
-            NSLayoutConstraint* left = [NSLayoutConstraint constraintWithItem:child attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:parent attribute:NSLayoutAttributeLeft multiplier:1 constant:0];
-            NSLayoutConstraint* right = [NSLayoutConstraint constraintWithItem:child attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:parent attribute:NSLayoutAttributeRight multiplier:1 constant:0];
-            NSLayoutConstraint* top = [NSLayoutConstraint constraintWithItem:child attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:parent attribute:NSLayoutAttributeTop multiplier:1 constant:0];
-            NSLayoutConstraint* bottom = [NSLayoutConstraint constraintWithItem:child attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:parent attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
-            
-            return @[left, right, top, bottom];
-        };
-        
-        // each sub view controller is fullscreen, but we can't activate these constraints until the views are added
-        // during the transition
-        self.closedController.view.translatesAutoresizingMaskIntoConstraints = NO;
-        self.openController.view.translatesAutoresizingMaskIntoConstraints = NO;
-        NSArray* closedControllerConstraints = fullscreenConstraints(self.view, self.closedController.view);
-        NSArray* openControllerConstraints = fullscreenConstraints(self.view, self.openController.view);
-        [self.view addConstraints:closedControllerConstraints];
-        [self.view addConstraints:openControllerConstraints];
-        [NSLayoutConstraint deactivateConstraints:closedControllerConstraints];
-        [NSLayoutConstraint deactivateConstraints:openControllerConstraints];
-        self.closedControllerFullscreenConstraints = closedControllerConstraints;
-        self.openControllerFullscreenConstraints = openControllerConstraints;
-        
-        self.viewControllersInitialized = YES;
+        // fullscreen
+        self.closedController.view.translatesAutoresizingMaskIntoConstraints = YES;
+        self.openController.view.translatesAutoresizingMaskIntoConstraints = YES;
+        self.closedController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        self.openController.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         
         // force update on close and set initial state
         self.openController.view.alpha = 0;
         self.isOpen = YES;
         self.isOpenLastUpdateView = self.isOpen;
-        self.isOpenLastUpdateBounds = self.isOpen;
         [self close];
+        
+        self.viewControllersInitialized = YES;
     }
 }
 
@@ -98,8 +71,12 @@ NSTimeInterval animationTime = 0.5f;
 }
 
 -(void) preferredContentSizeDidChangeForChildContentContainer:(id<UIContentContainer>)container {
-    self.isOpenLastUpdateBounds = !self.isOpen;
-    [self updateBoundsAnimated:YES];
+    self.preferredContentSize = [container preferredContentSize];
+}
+
+// still don't know when this gets called
+-(void) systemLayoutFittingSizeDidChangeForChildContentContainer:(id<UIContentContainer>)container {
+    [super systemLayoutFittingSizeDidChangeForChildContentContainer:container];
 }
 
 -(void) open {
@@ -107,7 +84,7 @@ NSTimeInterval animationTime = 0.5f;
     
     if (!self.isOpen) {
         self.isOpen = YES;
-        [self updateViewAnimated:YES];
+        [self transitionIfNeeded];
     }
 }
 
@@ -116,22 +93,24 @@ NSTimeInterval animationTime = 0.5f;
     
     if (self.isOpen) {
         self.isOpen = NO;
-        [self updateViewAnimated:YES];
+        [self transitionIfNeeded];
     }
 }
 
--(void) updateViewAnimated:(BOOL)animated {
+-(void) transitionIfNeeded {
     if (self.isOpen != self.isOpenLastUpdateView) {
         UIViewController* from = (self.isOpen ? self.closedController : self.openController);
         UIViewController* to = (self.isOpen ? self.openController : self.closedController);
 
-        animated = (animated && from.parentViewController != nil);
+        // don't animate the transition if we're in an initial state
+        BOOL animated = from.parentViewController != nil;
         
         [from willMoveToParentViewController:nil];
         [self addChildViewController:to];
+        to.view.frame = self.view.bounds;
         [self.view addSubview:to.view]; //we need to do this here to make the constraints work
-        [NSLayoutConstraint activateConstraints:(self.isOpen ? self.openControllerFullscreenConstraints : self.closedControllerFullscreenConstraints)];
         
+        // ensure sensible initial state
         [from.view layoutIfNeeded];
         [to.view layoutIfNeeded];
         
@@ -143,43 +122,17 @@ NSTimeInterval animationTime = 0.5f;
                 [from removeFromParentViewController];
                 [to didMoveToParentViewController:self];
             }];
-            
-            [self updateBoundsAnimated:YES];
         }
         else {
             to.view.alpha = 1;
             
+            [from removeFromParentViewController];
             [to didMoveToParentViewController:self];
-            
-            [self updateBoundsAnimated:NO];
         }
+        
+        self.preferredContentSize = to.preferredContentSize;
         
         self.isOpenLastUpdateView = self.isOpen;
-    }
-}
-
--(void) updateBoundsAnimated:(BOOL)animated {
-    if (self.isOpen != self.isOpenLastUpdateBounds) {
-        NSArray* additionalViews = nil;
-        if ([self.delegate respondsToSelector:@selector(expandingPopoverShouldTriggerLayoutForAdditionalViewsDuringBoundsChangeAnimation:)]) {
-            additionalViews = [self.delegate expandingPopoverShouldTriggerLayoutForAdditionalViewsDuringBoundsChangeAnimation:self];
-        }
-        
-        CGSize size = (self.isOpen ? self.openController.preferredContentSize : self.closedController.preferredContentSize);
-        self.width.constant = size.width;
-        self.height.constant = size.height;
-        [self.view setNeedsUpdateConstraints];
-        
-        [UIView animateWithDuration:(animated ? animationTime : 0) delay:0 options:UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionLayoutSubviews|UIViewAnimationOptionCurveEaseOut animations:^{
-            [self.view layoutIfNeeded];
-            
-            for (UIView* view in additionalViews) {
-                [view layoutIfNeeded];
-            }
-        } completion:^(BOOL finished) {
-        }];
-        
-        self.isOpenLastUpdateBounds = self.isOpen;
     }
 }
 

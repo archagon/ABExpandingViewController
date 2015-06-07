@@ -16,19 +16,10 @@
 @property (nonatomic, assign) BOOL viewControllersInitialized;
 @property (nonatomic, assign) BOOL isOpen;
 
-// constraints
-@property (nonatomic, retain) NSLayoutConstraint* width;
-@property (nonatomic, retain) NSLayoutConstraint* height;
-@property (nonatomic, retain) NSArray* closedControllerFullscreenConstraints;
-@property (nonatomic, retain) NSArray* openControllerFullscreenConstraints;
-
 // caches
 @property (nonatomic, assign) BOOL isOpenLastUpdateView;
-@property (nonatomic, assign) BOOL isOpenLastUpdateBounds;
 
 -(void) initializeViews;
-
--(void) updateViewAnimated:(BOOL)animated;
--(void) updateBoundsAnimated:(BOOL)animated;
+-(void) transitionIfNeeded;
 
 @end
