@@ -12,7 +12,7 @@
 @interface UIExpandingPopoverController ()
 @end
 
-NSTimeInterval animationTime = 0.5f;
+NSTimeInterval animationTime = 0.25f;
 
 @implementation UIExpandingPopoverController
 
@@ -109,14 +109,16 @@ NSTimeInterval animationTime = 0.5f;
         
         [from willMoveToParentViewController:nil];
         [self addChildViewController:to];
-        to.view.frame = self.view.bounds;
-        [self.view addSubview:to.view]; //we need to do this here to make the constraints work
         
-        // ensure sensible initial state
-        [from.view layoutIfNeeded];
-        [to.view layoutIfNeeded];
+        to.view.frame = self.view.bounds;
+        from.view.frame = self.view.bounds;
         
         if (animated) {
+            // TODO: this produces a warning, but without it, there's artifacting on first open
+            [self.view addSubview:to.view];
+            [from.view layoutIfNeeded];
+            [to.view layoutIfNeeded];
+            
             [self transitionFromViewController:from toViewController:to duration:animationTime options:0 animations:^{
                 to.view.alpha = 1;
                 from.view.alpha = 0;
@@ -128,7 +130,9 @@ NSTimeInterval animationTime = 0.5f;
         else {
             to.view.alpha = 1;
             
+            [self.view addSubview:to.view];
             [from removeFromParentViewController];
+            [from.view removeFromSuperview];
             [to didMoveToParentViewController:self];
         }
         
