@@ -33,6 +33,8 @@ NSTimeInterval animationTime = 0.5f;
         
         _isOpen = NO;
         _isOpenLastUpdateView = !_isOpen; //force update
+        
+        self.preferredContentSize = _closedController.preferredContentSize;
     }
     
     return self;

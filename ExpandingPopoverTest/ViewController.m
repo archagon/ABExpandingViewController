@@ -11,6 +11,7 @@
 #import "ClosedController.h"
 
 // TODO: unbalanced calls
+// TODO: animations at start
 
 @interface ViewController ()
 
@@ -73,11 +74,14 @@
         expandingPopoverController1 = [self createPopoverWithTarget:nil];
         [self addChildViewController:expandingPopoverController1];
         [self.view addSubview:expandingPopoverController1.view];
+        [self.view layoutIfNeeded];
         [expandingPopoverController1 didMoveToParentViewController:self];
         
         NSLayoutConstraint* constraint1 = [NSLayoutConstraint constraintWithItem:expandingPopoverController1.view attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeLeft multiplier:1 constant:20];
         NSLayoutConstraint* constraint2 = [NSLayoutConstraint constraintWithItem:expandingPopoverController1.view attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1 constant:40];
         [self.view addConstraints:@[constraint1, constraint2]];
+        
+        [self.view layoutIfNeeded];
     }
     
     // expanding button 2
@@ -86,6 +90,7 @@
         expandingPopoverController2 = [self createPopoverWithTarget:nil];
         [self addChildViewController:expandingPopoverController2];
         [self.view addSubview:expandingPopoverController2.view];
+        [self.view layoutIfNeeded];
         [expandingPopoverController2 didMoveToParentViewController:self];
 
         UIViewController* closedController = (UIViewController*)[expandingPopoverController2 closedController];
@@ -94,8 +99,11 @@
         expandingPopoverController2.view.layer.borderColor = [[UIColor darkGrayColor] CGColor];
 
         NSLayoutConstraint* constraint1 = [NSLayoutConstraint constraintWithItem:expandingPopoverController2.view attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeLeft multiplier:1 constant:20];
-        NSLayoutConstraint* constraint2 = [NSLayoutConstraint constraintWithItem:expandingPopoverController2.view attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:expandingPopoverController1.view attribute:NSLayoutAttributeBottom multiplier:1 constant:20];
+        NSLayoutConstraint* constraint2 = [NSLayoutConstraint constraintWithItem:expandingPopoverController2.view attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:expandingPopoverController1.view attribute:NSLayoutAttributeBottom multiplier:1 constant:20];
+        constraint2.priority = UILayoutPriorityDefaultLow;
         [self.view addConstraints:@[constraint1, constraint2]];
+        
+        [self.view layoutIfNeeded];
     }
 
     // just an extra view to demonstrate autolayout constraints
@@ -137,9 +145,14 @@
         
         UIButton* backButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [backButton setTitle:@"You Win" forState:UIControlStateNormal];
+        [backButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        backButton.titleLabel.font = [backButton.titleLabel.font fontWithSize:backButton.titleLabel.font.pointSize * 3];
         [bottomViewController.view addSubview:backButton];
-        backButton.center = bottomViewController.view.center;
-        backButton.frame = bottomViewController.view.bounds;
+        
+        backButton.translatesAutoresizingMaskIntoConstraints = NO;
+        NSLayoutConstraint* constraint1 = [NSLayoutConstraint constraintWithItem:backButton attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:bottomViewController.view attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
+        NSLayoutConstraint* constraint2 = [NSLayoutConstraint constraintWithItem:backButton attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:bottomViewController.view attribute:NSLayoutAttributeCenterY multiplier:1 constant:0];
+        [bottomViewController.view addConstraints:@[constraint1, constraint2]];
         
         UIViewController* middleViewController = [[UIViewController alloc] initWithNibName:nil bundle:nil];
         middleViewController.view.backgroundColor = [UIColor magentaColor];
@@ -147,10 +160,15 @@
         
         UIButton* backButton2 = [UIButton buttonWithType:UIButtonTypeCustom];
         [backButton2 setTitle:@"Almost There" forState:UIControlStateNormal];
+        [backButton2 setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        backButton2.titleLabel.font = [backButton2.titleLabel.font fontWithSize:backButton2.titleLabel.font.pointSize * 3];
         [backButton2 sizeToFit];
         [middleViewController.view addSubview:backButton2];
-        backButton2.center = middleViewController.view.center;
-        backButton2.frame = middleViewController.view.bounds;
+        
+        backButton2.translatesAutoresizingMaskIntoConstraints = NO;
+        constraint1 = [NSLayoutConstraint constraintWithItem:backButton2 attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:middleViewController.view attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
+        constraint2 = [NSLayoutConstraint constraintWithItem:backButton2 attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:middleViewController.view attribute:NSLayoutAttributeCenterY multiplier:1 constant:0];
+        [middleViewController.view addConstraints:@[constraint1, constraint2]];
         
         UIExpandingPopoverController* subExpandingPopoverController = [[UIExpandingPopoverController alloc] initWithClosed:middleViewController open:bottomViewController];
         
@@ -159,25 +177,32 @@
         expandingPopoverController3 = [self createPopoverWithTarget:subExpandingPopoverController];
         [self addChildViewController:expandingPopoverController3];
         [self.view addSubview:expandingPopoverController3.view];
+        [self.view layoutIfNeeded];
         [expandingPopoverController3 didMoveToParentViewController:self];
         
         UIViewController* closedController = (UIViewController*)[expandingPopoverController3 closedController];
         [closedController.view setBackgroundColor:[UIColor cyanColor]];
         closedController.preferredContentSize = CGSizeMake(200, 100);
         expandingPopoverController3.view.layer.borderColor = [[UIColor blackColor] CGColor];
-        
+
+        [backButton addTarget:subExpandingPopoverController action:@selector(close) forControlEvents:UIControlEventTouchUpInside];
         [backButton addTarget:expandingPopoverController3 action:@selector(close) forControlEvents:UIControlEventTouchUpInside];
         
         NSLayoutConstraint* right = [NSLayoutConstraint constraintWithItem:expandingPopoverController3.view attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeRight multiplier:1 constant:-20];
         NSLayoutConstraint* bottom = [NSLayoutConstraint constraintWithItem:expandingPopoverController3.view attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:expandingPopoverController2.view attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
+        NSLayoutConstraint* bottom2 = [NSLayoutConstraint constraintWithItem:expandingPopoverController3.view attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationLessThanOrEqual toItem:self.view attribute:NSLayoutAttributeBottom multiplier:1 constant:-20];
         NSLayoutConstraint* top = [NSLayoutConstraint constraintWithItem:expandingPopoverController3.view attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:blahView attribute:NSLayoutAttributeBottom multiplier:1 constant:20];
         NSLayoutConstraint* top2 = [NSLayoutConstraint constraintWithItem:expandingPopoverController3.view attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:expandingPopoverController1.view attribute:NSLayoutAttributeBottom multiplier:1 constant:20];
         NSLayoutConstraint* left = [NSLayoutConstraint constraintWithItem:expandingPopoverController3.view attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:expandingPopoverController2.view attribute:NSLayoutAttributeRight multiplier:1 constant:20];
-        [self.view addConstraints:@[right, bottom, top, top2, left]];
+        [self.view addConstraints:@[right, bottom, bottom2, top, top2, left]];
+
+        NSLayoutConstraint* width = self.expandingPopoverWidths[@([expandingPopoverController3 hash])];
+        width.priority = UILayoutPriorityDefaultHigh;
         
-        NSLayoutConstraint* otherWidth = self.expandingPopoverWidths[@([expandingPopoverController2 hash])];
-        otherWidth.priority = UILayoutPriorityDefaultLow;
+        [self.view layoutIfNeeded];
     }
+    
+    [self.view layoutIfNeeded];
 }
 
 -(UIExpandingPopoverController*) createPopoverWithTarget:(UIViewController*)target {
@@ -196,8 +221,9 @@
     
     NSLayoutConstraint* width = [NSLayoutConstraint constraintWithItem:popover.view attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:popover.preferredContentSize.width];
     NSLayoutConstraint* height = [NSLayoutConstraint constraintWithItem:popover.view attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:popover.preferredContentSize.height];
-    width.priority = UILayoutPriorityDefaultHigh;
-    height.priority = UILayoutPriorityDefaultHigh;
+    width.priority = (UILayoutPriorityDefaultLow + UILayoutPriorityDefaultHigh) / 2.0f;
+    height.priority = (UILayoutPriorityDefaultLow + UILayoutPriorityDefaultHigh) / 2.0f;
+    
     popover.view.translatesAutoresizingMaskIntoConstraints = NO;
     [popover.view addConstraints:@[width, height]];
     self.expandingPopoverWidths[@([popover hash])] = width;
